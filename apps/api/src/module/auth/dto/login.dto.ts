@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
 import { Trim } from 'src/common/decorator/trim.decorator';
 
-export class LoginDTO {
+export class LoginDto {
   @ApiProperty({
     type: String,
     example: 'me@me.me',

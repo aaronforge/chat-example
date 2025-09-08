@@ -11,7 +11,7 @@ export class BaseException extends HttpException {
   }
 }
 
-export class ExceptionResponseDTO {
+export class ExceptionResponseDto {
   @ApiProperty({
     type: Number,
     example: 400,

@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 import { BaseTimeEntity } from './base-time.entity';
+import { Room } from './room.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'message' })
 @Unique(['roomId', 'seq'])
@@ -25,4 +27,8 @@ export class Message extends BaseTimeEntity {
 
   @Column({ type: 'text', nullable: true })
   content?: string;
+
+  room?: Room;
+
+  user?: User;
 }

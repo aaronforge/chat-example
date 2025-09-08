@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
-import { CreateUserDTO } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { User } from 'src/entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import { EmailExistsException } from 'src/common/exception/user.exception';
@@ -10,7 +10,7 @@ export class UserService {
   private logger = new Logger(UserService.name);
   constructor(private readonly userRepository: UserRepository) {}
 
-  async create(dto: CreateUserDTO): Promise<User> {
+  async create(dto: CreateUserDto): Promise<User> {
     const email = dto.email.trim().toLowerCase();
 
     // 이메일 중복체크

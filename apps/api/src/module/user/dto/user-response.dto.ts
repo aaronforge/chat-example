@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/entity/user.entity';
 
-export class UserResponseDTO {
+export class UserResponseDto {
   @ApiProperty({
     type: String,
   })
@@ -27,7 +27,7 @@ export class UserResponseDTO {
   })
   updatedAt: Date;
 
-  static fromEntity(entity: User): UserResponseDTO {
+  static fromEntity(entity: User): UserResponseDto {
     return {
       id: entity.id,
       email: entity.email,

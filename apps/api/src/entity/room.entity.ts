@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { BaseTimeEntity } from './base-time.entity';
+import { RoomMember } from './room-member.entity';
+import { Message } from './message.entity';
 
 @Entity({ name: 'room' })
 export class Room extends BaseTimeEntity {
@@ -14,4 +16,8 @@ export class Room extends BaseTimeEntity {
 
   @Column({ type: 'int', default: 0 })
   lastSeq: number;
+
+  member?: RoomMember[];
+
+  lastMessage?: Message;
 }

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDTO } from './dto/login.dto';
+import { LoginDto } from './dto/login.dto';
 import {
   InvalidCredentialsException,
   UserNotFoundException,
 } from 'src/common/exception/user.exception';
 import * as bcrypt from 'bcrypt';
 import { TJwtPayload } from './type/jwt-payload.type';
-import { AccessTokenResponseDTO } from './dto/access-token-response';
+import { AccessTokenResponseDto } from './dto/access-token-response';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +17,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDTO): Promise<AccessTokenResponseDTO> {
+  async login(dto: LoginDto): Promise<AccessTokenResponseDto> {
     const { email, password } = dto;
     const user = await this.userService.findByEmail(email);
     if (!user) throw new UserNotFoundException();

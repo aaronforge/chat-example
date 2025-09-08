@@ -9,6 +9,9 @@ import { RoomMember } from 'src/entity/room-member.entity';
 import { Room } from 'src/entity/room.entity';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
+import { RoomModule } from '../room/room.module';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -33,8 +36,13 @@ import { AuthModule } from '../auth/auth.module';
     TypeOrmModule.forFeature([User, Message, RoomMember, Room]),
     AuthModule,
     UserModule,
+    RoomModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    Reflector,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    AppService,
+  ],
 })
 export class AppModule {}

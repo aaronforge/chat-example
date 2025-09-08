@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseTimeEntity } from './base-time.entity';
+import { RoomMember } from './room-member.entity';
 
 @Entity('user')
 export class User extends BaseTimeEntity {
@@ -14,4 +15,6 @@ export class User extends BaseTimeEntity {
 
   @Column()
   nickname: string;
+
+  members?: RoomMember[];
 }
