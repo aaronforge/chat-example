@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { User } from 'src/entity/user.entity';
@@ -7,6 +7,7 @@ import { EmailExistsException } from 'src/common/exception/user.exception';
 
 @Injectable()
 export class UserService {
+  private logger = new Logger(UserService.name);
   constructor(private readonly userRepository: UserRepository) {}
 
   async create(dto: CreateUserDTO): Promise<User> {
@@ -14,7 +15,7 @@ export class UserService {
 
     // 이메일 중복체크
     if (await this.userRepository.existsByEmail(email)) {
-      // TODO: 이메일 중복 에러 처리
+      this.logger.warn(`Email already exists: ${email}`);
       throw new EmailExistsException();
     }
 

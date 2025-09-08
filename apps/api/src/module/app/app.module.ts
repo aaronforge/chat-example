@@ -8,6 +8,7 @@ import { Message } from 'src/entity/message.entity';
 import { RoomMember } from 'src/entity/room-member.entity';
 import { Room } from 'src/entity/room.entity';
 import { UserModule } from '../user/user.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UserModule } from '../user/user.module';
       }),
     }),
     TypeOrmModule.forFeature([User, Message, RoomMember, Room]),
+    AuthModule,
     UserModule,
   ],
   controllers: [AppController],
