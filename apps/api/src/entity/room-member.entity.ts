@@ -11,7 +11,7 @@ export class RoomMember extends BaseTimeEntity {
   @PrimaryColumn('uuid')
   userId: string;
 
-  @Column({ type: 'text', default: 'member' })
+  @Column({ type: 'varchar', default: 'member' })
   role: 'member' | 'admin';
 
   @Column({ type: 'int', default: 0 })

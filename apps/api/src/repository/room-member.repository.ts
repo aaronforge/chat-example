@@ -10,6 +10,12 @@ export class RoomMemberRepository extends Repository<RoomMember> {
     super(RoomMember, dataSource.createEntityManager());
   }
 
+  /**
+   * 특정 사용자가 속한 방 목록 조회
+   * - 최근 메시지와 함께 반환
+   * - 최근 메시지 기준 내림차순 정렬
+   * - 최근 메시지가 없을 경우 방의 업데이트 시간 기준 내림차순 정렬
+   */
   async listRoomsByUser(userId: string) {
     return this.createQueryBuilder('rm')
       .leftJoinAndMapOne('rm.room', Room, 'r', 'rm.roomId = r.id')

@@ -22,10 +22,10 @@ export class Message extends BaseTimeEntity {
   @Column('int')
   seq: number;
 
-  @Column({ type: 'text', default: 'text' })
+  @Column({ type: 'varchar', default: 'text' })
   type: 'text' | 'image' | 'system';
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   content?: string;
 
   room?: Room;

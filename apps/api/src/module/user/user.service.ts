@@ -10,6 +10,9 @@ export class UserService {
   private logger = new Logger(UserService.name);
   constructor(private readonly userRepository: UserRepository) {}
 
+  /**
+   * 사용자 생성
+   */
   async create(dto: CreateUserDto): Promise<User> {
     const email = dto.email.trim().toLowerCase();
 
@@ -31,6 +34,9 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
+  /**
+   * 이메일로 사용자 조회
+   */
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findByEmail(email);
   }

@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './module/app/app.module';
 import { SwaggerModule } from '@nestjs/swagger';

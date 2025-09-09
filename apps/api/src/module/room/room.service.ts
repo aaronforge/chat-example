@@ -15,7 +15,6 @@ export class RoomService {
   ) {}
 
   async listMyRooms(userId: string): Promise<Room[]> {
-    this.logger.debug(`Listing rooms for user: ${userId}`);
     const roomMembers = await this.roomMemberRepository.listRoomsByUser(userId);
     return roomMembers.filter((rm) => !!rm.room).map((rm) => rm.room!);
   }
