@@ -9,7 +9,7 @@ export class CreateUserDto {
   })
   @IsEmail()
   @Trim()
-  email: string;
+  readonly email: string;
 
   @ApiProperty({
     type: String,
@@ -18,7 +18,7 @@ export class CreateUserDto {
   })
   @IsString()
   @MinLength(6)
-  password: string;
+  readonly password: string;
 
   @ApiProperty({
     type: String,
@@ -28,5 +28,5 @@ export class CreateUserDto {
   @IsString()
   @MinLength(1)
   @Trim()
-  nickname: string;
+  readonly nickname: string;
 }

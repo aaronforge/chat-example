@@ -9,12 +9,12 @@ export class LoginDto {
   })
   @IsEmail()
   @Trim()
-  email: string;
+  readonly email: string;
 
   @ApiProperty({
     type: String,
     example: 'password',
   })
   @IsString()
-  password: string;
+  readonly password: string;
 }

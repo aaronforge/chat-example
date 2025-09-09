@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
 import { NotInRoomException } from 'src/common/exception/room.exception';
-import { Room } from 'src/entity/room.entity';
 import { RoomMemberRepository } from 'src/repository/room-member.repository';
 import { RoomRepository } from 'src/repository/room.repository';
 
@@ -14,12 +12,16 @@ export class RoomService {
     private readonly roomMemberRepository: RoomMemberRepository,
   ) {}
 
-  async listMyRooms(userId: string): Promise<Room[]> {
-    const roomMembers = await this.roomMemberRepository.listRoomsByUser(userId);
-    return roomMembers.filter((rm) => !!rm.room).map((rm) => rm.room!);
+  async listMyRooms(userId: string) {
+    const [list, total] =
+      await this.roomMemberRepository.listRoomsByUser(userId);
+    return {
+      list: list.filter((rm) => !!rm.room).map((rm) => rm.room!),
+      total,
+    };
   }
 
-  async leaveRoom(userId: string, roomId: string): Promise<OkResponseDto> {
+  async leaveRoom(userId: string, roomId: string) {
     const member = await this.roomMemberRepository.findOne({
       where: { userId, roomId },
     });

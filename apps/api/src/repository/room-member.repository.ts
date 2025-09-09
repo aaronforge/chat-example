@@ -26,8 +26,8 @@ export class RoomMemberRepository extends Repository<RoomMember> {
         'lm.roomId = r.id AND lm.seq = r.lastSeq',
       )
       .where('rm.userId = :userId', { userId })
-      .orderBy('lm.createdAt', 'DESC')
+      .orderBy('lm.seq', 'DESC', 'NULLS LAST')
       .addOrderBy('r.updatedAt', 'DESC')
-      .getMany();
+      .getManyAndCount();
   }
 }

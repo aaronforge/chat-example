@@ -25,11 +25,11 @@ export class AuthController {
   @ApiOkResponse({ type: TokenResponseDto })
   @ApiNotFoundResponse({
     type: ExceptionResponseDto,
-    description: '존재하지 않는 사용자',
+    description: 'USER_NOT_FOUND',
   })
   @ApiUnauthorizedResponse({
     type: ExceptionResponseDto,
-    description: '잘못된 인증 정보',
+    description: 'INVALID_CREDENTIALS',
   })
   @HttpCode(HttpStatus.OK)
   @Post('login')
@@ -46,11 +46,12 @@ export class AuthController {
   @ApiOkResponse({ type: TokenResponseDto })
   @ApiUnauthorizedResponse({
     type: ExceptionResponseDto,
-    description: '인증 정보 조회 실패',
+    description:
+      'UNAUTHORIZED | EXPIRED_TOKEN | INVALID_TOKEN | REFRESH_FAILED',
   })
   @ApiForbiddenResponse({
     type: ExceptionResponseDto,
-    description: '사용자 조회 실패',
+    description: 'SUBJECT_NOT_FOUND',
   })
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
@@ -64,10 +65,10 @@ export class AuthController {
 
   @Public()
   @ApiOperation({ summary: '로그아웃' })
-  @ApiOkResponse({ type: Boolean })
+  @ApiOkResponse({ type: OkResponseDto })
   @ApiUnauthorizedResponse({
     type: ExceptionResponseDto,
-    description: '인증 정보 조회 실패',
+    description: 'UNAUTHORIZED | EXPIRED_TOKEN | INVALID_TOKEN',
   })
   @HttpCode(HttpStatus.OK)
   @Post('logout')

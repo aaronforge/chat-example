@@ -6,5 +6,5 @@ export class RefreshTokenDto {
     type: String,
   })
   @IsString()
-  refreshToken: string;
+  readonly refreshToken: string;
 }

@@ -19,7 +19,7 @@ export class UserController {
   @ApiCreatedResponse({ type: UserResponseDto })
   @ApiConflictResponse({
     type: ExceptionResponseDto,
-    description: '이미 사용 중인 이메일',
+    description: 'EMAIL_ALREADY_EXISTS',
   })
   @Post()
   async create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {

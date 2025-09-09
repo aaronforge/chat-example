@@ -12,6 +12,8 @@ import { AuthModule } from '../auth/auth.module';
 import { RoomModule } from '../room/room.module';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { MessageModule } from '../message/message.module';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
   imports: [
@@ -31,12 +33,14 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
         autoLoadEntities: true,
+        namingStrategy: new SnakeNamingStrategy(),
       }),
     }),
     TypeOrmModule.forFeature([User, Message, RoomMember, Room]),
     AuthModule,
     UserModule,
     RoomModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [
