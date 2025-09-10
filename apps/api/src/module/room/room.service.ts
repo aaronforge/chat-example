@@ -12,6 +12,9 @@ export class RoomService {
     private readonly roomMemberRepository: RoomMemberRepository,
   ) {}
 
+  /**
+   * 내가 속한 방 목록 조회
+   */
   async listMyRooms(userId: string) {
     const [list, total] =
       await this.roomMemberRepository.listRoomsByUser(userId);
@@ -21,6 +24,9 @@ export class RoomService {
     };
   }
 
+  /**
+   * 방 나가기
+   */
   async leaveRoom(userId: string, roomId: string) {
     const member = await this.roomMemberRepository.findOne({
       where: { userId, roomId },
