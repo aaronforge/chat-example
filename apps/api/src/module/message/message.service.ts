@@ -100,12 +100,8 @@ export class MessageService {
       where: { id: messageId, userId },
     });
 
-    console.log(messageId);
-
     if (!msg) throw new MessageNotFoundException();
     if (msg.userId !== userId) throw new ForbiddenException();
-
-    console.log(messageId);
 
     await this.messageRepository.softDelete({ id: messageId });
     return true;
