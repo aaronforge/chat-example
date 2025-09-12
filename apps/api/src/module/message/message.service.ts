@@ -76,7 +76,7 @@ export class MessageService {
    * 메시지 목록 조회
    */
   async list(userId: string, dto: ListMessageQuery) {
-    const { roomId, afterSeq, limit } = dto;
+    const { roomId, beforeSeq: afterSeq, limit } = dto;
 
     const member = await this.roomMemberRepository.findOne({
       where: { roomId, userId },

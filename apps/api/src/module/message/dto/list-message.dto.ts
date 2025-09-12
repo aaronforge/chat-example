@@ -15,7 +15,7 @@ export class ListMessageQuery {
   @IsOptional()
   @IsInt()
   @Min(0)
-  readonly afterSeq?: number;
+  readonly beforeSeq?: number;
 
   @ApiPropertyOptional({
     type: Number,

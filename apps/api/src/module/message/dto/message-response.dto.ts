@@ -41,12 +41,6 @@ export class MessageResponseDto {
   content: string | null;
 
   @ApiProperty({
-    type: UserResponseDto,
-    nullable: true,
-  })
-  user: UserResponseDto | null;
-
-  @ApiProperty({
     type: Date,
   })
   createdAt: Date;
@@ -71,7 +65,6 @@ export class MessageResponseDto {
       seq: entity.seq,
       type: entity.type,
       content: entity.deletedAt ? null : entity.content || null,
-      user: entity.user ? UserResponseDto.fromEntity(entity.user) : null,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       deletedAt: entity.deletedAt || null,
