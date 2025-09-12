@@ -76,11 +76,20 @@ export class MessageListResponseDto {
   @ApiProperty({
     type: MessageResponseDto,
     isArray: true,
+    description: '메시지 목록 (오래된 순서, reversed)',
   })
   list: MessageResponseDto[];
 
   @ApiProperty({
     type: Number,
+    description: '총 메시지 수',
   })
   total: number;
+
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: '다음 페이지를 위한 커서 (없으면 null)',
+  })
+  nextCursor: number | null;
 }

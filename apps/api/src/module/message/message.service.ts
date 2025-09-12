@@ -89,7 +89,9 @@ export class MessageService {
       limit,
     );
 
-    return { list, total };
+    const nextCursor = list.length ? list[list.length - 1].seq : null;
+
+    return { list: list.reverse(), total, nextCursor };
   }
 
   /**

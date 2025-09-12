@@ -54,9 +54,12 @@ export class MessageController {
     @CurrentUserId() userId: string,
     @Query() q: ListMessageQuery,
   ): Promise<MessageListResponseDto> {
-    const { list, total } = await this.messageService.list(userId, q);
+    const { list, total, nextCursor } = await this.messageService.list(
+      userId,
+      q,
+    );
     const messages = list.map(MessageResponseDto.fromEntity);
-    return { list: messages, total };
+    return { list: messages, total, nextCursor };
   }
 
   @ApiOperation({ summary: '메시지 삭제' })
