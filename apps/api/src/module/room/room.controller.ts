@@ -28,6 +28,7 @@ import {
 import { ExceptionResponseDto } from 'src/common/exception/base.exception';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
+import { UserResponseDto } from '../user/dto/user-response.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -60,6 +61,23 @@ export class RoomController {
     const { list, total } = await this.roomService.listMyRooms(userId, query);
     const rooms = list.map(RoomResponseDto.fromEntity);
     return { list: rooms, total };
+  }
+
+  @ApiOperation({ summary: '멤버 목록' })
+  @ApiOkResponse({ type: UserResponseDto, isArray: true })
+  @ApiNotFoundResponse({
+    type: ExceptionResponseDto,
+    description: 'NOT_IN_ROOM',
+  })
+  @Get(':id/members')
+  async members(
+    @CurrentUserId() userId: string,
+    @Param('id', new ParseUUIDPipe()) roomId: string,
+  ): Promise<UserResponseDto[]> {
+    const members = await this.roomService.listMembers(userId, roomId);
+    return members
+      .filter((m) => !!m.user)
+      .map((m) => UserResponseDto.fromEntity(m.user!));
   }
 
   @ApiOperation({ summary: '방 나가기' })

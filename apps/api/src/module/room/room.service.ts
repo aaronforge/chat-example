@@ -68,6 +68,18 @@ export class RoomService {
   }
 
   /**
+   * 멤버 목록
+   */
+  async listMembers(userId: string, roomId: string) {
+    const member = await this.roomMemberRepository.findOne({
+      where: { roomId, userId },
+    });
+    if (!member) throw new NotInRoomException();
+
+    return this.roomMemberRepository.listMembersByRoom(member.roomId);
+  }
+
+  /**
    * 방 나가기
    */
   async leaveRoom(userId: string, roomId: string) {

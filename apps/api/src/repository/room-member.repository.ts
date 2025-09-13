@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Message } from 'src/entity/message.entity';
 import { RoomMember } from 'src/entity/room-member.entity';
 import { Room } from 'src/entity/room.entity';
+import { User } from 'src/entity/user.entity';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -35,5 +36,18 @@ export class RoomMemberRepository extends Repository<RoomMember> {
       .orderBy('lm.seq', 'DESC', 'NULLS LAST')
       .addOrderBy('r.updatedAt', 'DESC')
       .getManyAndCount();
+  }
+
+  /**
+   * 특정 방의 멤버 목록 조회
+   * - 생성일 기준 오름차순 정렬
+   * - User 엔티티와 조인하여 유저 정보 포함
+   */
+  async listMembersByRoom(roomId: string) {
+    return this.createQueryBuilder('rm')
+      .leftJoinAndMapOne('rm.user', User, 'u', 'rm.userId = u.id')
+      .where('rm.roomId = :roomId', { roomId })
+      .orderBy('rm.createdAt', 'ASC')
+      .getMany();
   }
 }
