@@ -16,7 +16,11 @@ export class RoomMemberRepository extends Repository<RoomMember> {
    * - 최근 메시지 기준 내림차순 정렬
    * - 최근 메시지가 없을 경우 방의 업데이트 시간 기준 내림차순 정렬
    */
-  async listRoomsByUser(userId: string) {
+  async listRoomsByUser(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0,
+  ) {
     return this.createQueryBuilder('rm')
       .leftJoinAndMapOne('rm.room', Room, 'r', 'rm.roomId = r.id')
       .leftJoinAndMapOne(
@@ -25,6 +29,8 @@ export class RoomMemberRepository extends Repository<RoomMember> {
         'lm',
         'lm.roomId = r.id AND lm.seq = r.lastSeq',
       )
+      .take(limit)
+      .skip(offset)
       .where('rm.userId = :userId', { userId })
       .orderBy('lm.seq', 'DESC', 'NULLS LAST')
       .addOrderBy('r.updatedAt', 'DESC')

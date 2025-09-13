@@ -1,9 +1,12 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
   ParseUUIDPipe,
+  Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -11,6 +14,7 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { RoomService } from './room.service';
 import { OkResponseDto } from 'src/common/dto/ok-response.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -22,6 +26,8 @@ import {
   RoomResponseDto,
 } from '../message/dto/room-response.dto';
 import { ExceptionResponseDto } from 'src/common/exception/base.exception';
+import { ListRoomQueryDto } from './dto/list-room.dto';
+import { CreateRoomDto } from './dto/create-room.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -29,11 +35,29 @@ import { ExceptionResponseDto } from 'src/common/exception/base.exception';
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
+  @ApiOperation({ summary: '방 생성' })
+  @ApiOkResponse({ type: RoomResponseDto })
+  @ApiBadRequestResponse({
+    description: 'NEED_AT_LEAST_TWO_MEMBERS',
+    type: ExceptionResponseDto,
+  })
+  @Post()
+  async create(
+    @CurrentUserId() userId: string,
+    @Body() body: CreateRoomDto,
+  ): Promise<RoomResponseDto> {
+    const room = await this.roomService.createRoom(userId, body);
+    return RoomResponseDto.fromEntity(room);
+  }
+
   @ApiOperation({ summary: '내가 속한 방 목록 조회' })
   @ApiOkResponse({ type: RoomListResponseDto })
   @Get()
-  async list(@CurrentUserId() userId: string): Promise<RoomListResponseDto> {
-    const { list, total } = await this.roomService.listMyRooms(userId);
+  async list(
+    @CurrentUserId() userId: string,
+    @Query() query: ListRoomQueryDto,
+  ): Promise<RoomListResponseDto> {
+    const { list, total } = await this.roomService.listMyRooms(userId, query);
     const rooms = list.map(RoomResponseDto.fromEntity);
     return { list: rooms, total };
   }

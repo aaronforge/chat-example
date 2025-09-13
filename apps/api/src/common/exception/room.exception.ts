@@ -16,3 +16,13 @@ export class RoomNotFoundException extends BaseException {
     );
   }
 }
+
+export class NeedAtLeastTwoMembersException extends BaseException {
+  constructor() {
+    super(
+      'NEED_AT_LEAST_TWO_MEMBERS',
+      '최소 2명 이상의 멤버가 있어야 합니다.',
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}

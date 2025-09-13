@@ -8,9 +8,6 @@ export class Room extends BaseTimeEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', default: 'dm' })
-  type: 'dm' | 'group';
-
   @Column({ type: 'varchar', nullable: true })
   title?: string;
 
