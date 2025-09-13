@@ -56,11 +56,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
   async refresh(
-    @Body() body: RefreshTokenDto,
+    @Body() dto: RefreshTokenDto,
     @UserAgent() userAgent: string | null,
     @RealIp() ip: string,
   ): Promise<TokenResponseDto> {
-    return this.authService.refresh(body.refreshToken, userAgent, ip);
+    return this.authService.refresh(dto.refreshToken, userAgent, ip);
   }
 
   @Public()
@@ -72,8 +72,8 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  async logout(@Body() body: RefreshTokenDto): Promise<OkResponseDto> {
-    const result = await this.authService.logout(body.refreshToken);
+  async logout(@Body() dto: RefreshTokenDto): Promise<OkResponseDto> {
+    const result = await this.authService.logout(dto.refreshToken);
     return {
       ok: result,
     };

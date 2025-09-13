@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -29,6 +30,8 @@ import { ExceptionResponseDto } from 'src/common/exception/base.exception';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
+import { MarkReadResponseDto } from './dto/mark-read-response.dto';
+import { MarkReadDto } from './dto/mark-read.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -45,9 +48,9 @@ export class RoomController {
   @Post()
   async create(
     @CurrentUserId() userId: string,
-    @Body() body: CreateRoomDto,
+    @Body() dto: CreateRoomDto,
   ): Promise<RoomResponseDto> {
-    const room = await this.roomService.createRoom(userId, body);
+    const room = await this.roomService.createRoom(userId, dto);
     return RoomResponseDto.fromEntity(room);
   }
 
@@ -93,5 +96,21 @@ export class RoomController {
   ): Promise<OkResponseDto> {
     await this.roomService.leaveRoom(userId, roomId);
     return { ok: true };
+  }
+
+  @ApiOperation({ summary: '읽음 처리' })
+  @ApiOkResponse({ type: MarkReadResponseDto })
+  @ApiNotFoundResponse({
+    type: ExceptionResponseDto,
+    description: 'NOT_IN_ROOM',
+  })
+  @Put(':id/read')
+  async markRead(
+    @CurrentUserId() userId: string,
+    @Param('id', new ParseUUIDPipe()) roomId: string,
+    @Body() dto: MarkReadDto,
+  ): Promise<MarkReadResponseDto> {
+    const result = await this.roomService.markRead(userId, roomId, dto.upToSeq);
+    return result;
   }
 }
