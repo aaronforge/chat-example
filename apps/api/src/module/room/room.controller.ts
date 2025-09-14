@@ -22,16 +22,15 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { CurrentUserId } from 'src/common/decorator/current-user.decorator';
-import {
-  RoomListResponseDto,
-  RoomResponseDto,
-} from '../message/dto/room-response.dto';
+import { RoomSummaryResponseDto } from './dto/room-summary-response.dto';
 import { ExceptionResponseDto } from 'src/common/exception/base.exception';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
 import { MarkReadResponseDto } from './dto/mark-read-response.dto';
 import { MarkReadDto } from './dto/mark-read.dto';
+import { RoomListResponseDto } from './dto/room-list-response.dto';
+import { MessageResponseDto } from '../message/dto/message-response.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -40,7 +39,7 @@ export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   @ApiOperation({ summary: '방 생성' })
-  @ApiOkResponse({ type: RoomResponseDto })
+  @ApiOkResponse({ type: RoomSummaryResponseDto })
   @ApiBadRequestResponse({
     description: 'NEED_AT_LEAST_TWO_MEMBERS',
     type: ExceptionResponseDto,
@@ -49,9 +48,9 @@ export class RoomController {
   async create(
     @CurrentUserId() userId: string,
     @Body() dto: CreateRoomDto,
-  ): Promise<RoomResponseDto> {
+  ): Promise<RoomSummaryResponseDto> {
     const room = await this.roomService.createRoom(userId, dto);
-    return RoomResponseDto.fromEntity(room);
+    return RoomSummaryResponseDto.fromEntity(room);
   }
 
   @ApiOperation({ summary: '내가 속한 방 목록 조회' })
@@ -62,8 +61,21 @@ export class RoomController {
     @Query() query: ListRoomQueryDto,
   ): Promise<RoomListResponseDto> {
     const { list, total } = await this.roomService.listMyRooms(userId, query);
-    const rooms = list.map(RoomResponseDto.fromEntity);
-    return { list: rooms, total };
+    return {
+      list: list.map((data) => ({
+        id: data.room.id,
+        title: data.room.title || null,
+        lastMessage: data.room.lastMessage
+          ? MessageResponseDto.fromEntity(data.room.lastMessage)
+          : null,
+        members: data.members.map(UserResponseDto.fromEntity),
+        numOfMembers: data.numOfMembers,
+        numOfUnreadMessages: data.numOfUnreadMessages,
+        createdAt: data.room.createdAt,
+        updatedAt: data.room.updatedAt,
+      })),
+      total,
+    };
   }
 
   @ApiOperation({ summary: '멤버 목록' })

@@ -20,4 +20,18 @@ export class ListRoomQueryDto {
   @Min(1)
   @Max(100)
   readonly limit?: number = 20;
+
+  @ApiPropertyOptional({
+    type: Number,
+    default: 4,
+    example: 4,
+    minimum: 1,
+    maximum: 20,
+    description: '방 목록에서 각 방에 대해 미리보기로 포함할 멤버 수',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  readonly numOfPreviewMembers?: number = 4;
 }

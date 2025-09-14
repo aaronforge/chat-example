@@ -11,6 +11,7 @@ import { Room } from 'src/entity/room.entity';
 import { RoomMember } from 'src/entity/room-member.entity';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { Message } from 'src/entity/message.entity';
+import { MessageRepository } from 'src/repository/message.repository';
 
 @Injectable()
 export class RoomService {
@@ -20,6 +21,7 @@ export class RoomService {
     private readonly dataSource: DataSource,
     private readonly roomRepository: RoomRepository,
     private readonly roomMemberRepository: RoomMemberRepository,
+    private readonly messageRepository: MessageRepository,
   ) {}
 
   /**
@@ -62,8 +64,36 @@ export class RoomService {
       dto.limit,
       dto.offset,
     );
+    const rooms = list.filter((rm) => !!rm.room).map((rm) => rm.room!);
+    const roomIds = rooms.map((r) => r.id);
+    if (roomIds.length === 0) {
+      return { list: [], total: 0 };
+    }
+
+    // 내가 속한 방의 멤버들 일괄 조회
+    const members = await this.roomMemberRepository.listMembersPreviewByRooms(
+      roomIds,
+      dto.numOfPreviewMembers || 4,
+    );
+
+    // 안 읽은 수 계산
+    const unreadMap = await this.messageRepository.countUnreadByRooms(
+      userId,
+      roomIds,
+    );
+
     return {
-      list: list.filter((rm) => !!rm.room).map((rm) => rm.room!),
+      list: rooms.map((room) => {
+        const roomId = room.id;
+        const membersInfo = members.get(roomId);
+
+        return {
+          room,
+          members: membersInfo?.users || [],
+          numOfMembers: membersInfo?.total || 0,
+          numOfUnreadMessages: unreadMap.get(roomId) || 0,
+        };
+      }),
       total,
     };
   }

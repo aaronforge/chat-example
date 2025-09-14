@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Room } from 'src/entity/room.entity';
-import { MessageResponseDto } from './message-response.dto';
 
-export class RoomResponseDto {
+export class RoomSummaryResponseDto {
   @ApiProperty({
     type: String,
     format: 'uuid',
@@ -15,12 +14,6 @@ export class RoomResponseDto {
     nullable: true,
   })
   title: string | null;
-
-  @ApiProperty({
-    type: MessageResponseDto,
-    nullable: true,
-  })
-  lastMessage: MessageResponseDto | null;
 
   @ApiProperty({
     type: String,
@@ -36,23 +29,12 @@ export class RoomResponseDto {
   })
   updatedAt: Date;
 
-  static fromEntity(entity: Room): RoomResponseDto {
+  static fromEntity(entity: Room): RoomSummaryResponseDto {
     return {
       id: entity.id,
       title: entity.title || null,
-      lastMessage: entity.lastMessage
-        ? MessageResponseDto.fromEntity(entity.lastMessage)
-        : null,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
   }
-}
-
-export class RoomListResponseDto {
-  @ApiProperty({ type: RoomResponseDto, isArray: true })
-  list: RoomResponseDto[];
-
-  @ApiProperty({ type: Number, description: '총 개수' })
-  total: number;
 }
