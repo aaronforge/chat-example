@@ -31,6 +31,9 @@ import { MarkReadResponseDto } from './dto/mark-read-response.dto';
 import { MarkReadDto } from './dto/mark-read.dto';
 import { RoomListResponseDto } from './dto/room-list-response.dto';
 import { MessageResponseDto } from '../message/dto/message-response.dto';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { IdListResponseDto } from 'src/common/dto/id-list-response.dto';
+import { RoomDetailResponseDto } from './dto/room-detail-response.dto';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -61,21 +64,39 @@ export class RoomController {
     @Query() query: ListRoomQueryDto,
   ): Promise<RoomListResponseDto> {
     const { list, total } = await this.roomService.listMyRooms(userId, query);
+    const detailedList = list.map<RoomDetailResponseDto>((data) => ({
+      id: data.room.id,
+      title: data.room.title || null,
+      lastMessage: data.room.lastMessage
+        ? MessageResponseDto.fromEntity(data.room.lastMessage)
+        : null,
+      members: data.members.map(UserResponseDto.fromEntity),
+      numOfMembers: data.numOfMembers,
+      numOfUnreadMessages: data.numOfUnreadMessages,
+      createdAt: data.room.createdAt,
+      updatedAt: data.room.updatedAt,
+    }));
+
     return {
-      list: list.map((data) => ({
-        id: data.room.id,
-        title: data.room.title || null,
-        lastMessage: data.room.lastMessage
-          ? MessageResponseDto.fromEntity(data.room.lastMessage)
-          : null,
-        members: data.members.map(UserResponseDto.fromEntity),
-        numOfMembers: data.numOfMembers,
-        numOfUnreadMessages: data.numOfUnreadMessages,
-        createdAt: data.room.createdAt,
-        updatedAt: data.room.updatedAt,
-      })),
+      list: detailedList,
       total,
     };
+  }
+
+  @ApiOperation({ summary: '초대' })
+  @ApiOkResponse({ type: IdListResponseDto })
+  @ApiNotFoundResponse({
+    type: ExceptionResponseDto,
+    description: 'ROOM_NOT_FOUND | NOT_IN_ROOM',
+  })
+  @Post(':id/invite')
+  async invite(
+    @CurrentUserId() userId: string,
+    @Param('id', new ParseUUIDPipe()) roomId: string,
+    @Body() dto: InviteMemberDto,
+  ): Promise<IdListResponseDto> {
+    const { ids } = await this.roomService.inviteMember(userId, roomId, dto);
+    return { ids };
   }
 
   @ApiOperation({ summary: '멤버 목록' })

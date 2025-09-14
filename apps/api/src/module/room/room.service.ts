@@ -2,16 +2,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   NeedAtLeastTwoMembersException,
   NotInRoomException,
+  RoomNotFoundException,
 } from 'src/common/exception/room.exception';
 import { RoomMemberRepository } from 'src/repository/room-member.repository';
 import { RoomRepository } from 'src/repository/room.repository';
 import { CreateRoomDto } from './dto/create-room.dto';
-import { DataSource } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { Room } from 'src/entity/room.entity';
 import { RoomMember } from 'src/entity/room-member.entity';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { Message } from 'src/entity/message.entity';
 import { MessageRepository } from 'src/repository/message.repository';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { User } from 'src/entity/user.entity';
 
 @Injectable()
 export class RoomService {
@@ -56,6 +59,60 @@ export class RoomService {
   }
 
   /**
+   * 멤버 초대
+   */
+  async inviteMember(inviterId: string, roomId: string, dto: InviteMemberDto) {
+    let ids: string[] = [];
+    const { memberIds } = dto;
+    if (memberIds.length === 0) return { ids };
+
+    const room = await this.roomRepository.findOne({ where: { id: roomId } });
+    if (!room) throw new RoomNotFoundException();
+
+    return this.dataSource.transaction(async (em) => {
+      const roomMemberRepo = em.getRepository(RoomMember);
+      const userRepo = em.getRepository(User);
+
+      const inviter = await roomMemberRepo.findOne({
+        where: { roomId, userId: inviterId },
+      });
+      if (!inviter) throw new NotInRoomException();
+
+      const users = await userRepo.find({ where: { id: In(memberIds) } });
+      const validIds = new Set(users.map((u) => u.id));
+      validIds.delete(inviterId);
+      if (validIds.size === 0) return { ids };
+
+      const existMembers = await roomMemberRepo.find({
+        where: { roomId, userId: In([...validIds]) },
+      });
+      existMembers.forEach((m) => validIds.delete(m.userId));
+      if (validIds.size === 0) return { ids };
+
+      // Upsert
+      const result = await roomMemberRepo
+        .createQueryBuilder()
+        .insert()
+        .into(RoomMember)
+        .values(
+          [...validIds].map((uid) => ({
+            roomId,
+            userId: uid,
+            lastReadSeq: 0,
+          })),
+        )
+        .orUpdate(['deleted_at'], ['room_id', 'user_id'])
+        .execute();
+
+      ids = result.identifiers
+        .filter((id) => id.userId && typeof id.userId === 'string')
+        .map((id) => id.userId as string);
+
+      return { ids };
+    });
+  }
+
+  /**
    * 내가 속한 방 목록 조회
    */
   async listMyRooms(userId: string, dto: ListRoomQueryDto) {
@@ -90,8 +147,8 @@ export class RoomService {
         return {
           room,
           members: membersInfo?.users || [],
-          numOfMembers: membersInfo?.total || 0,
-          numOfUnreadMessages: unreadMap.get(roomId) || 0,
+          numOfMembers: Math.max(membersInfo?.total || 0, 0),
+          numOfUnreadMessages: Math.max(unreadMap.get(roomId) || 0, 0),
         };
       }),
       total,
