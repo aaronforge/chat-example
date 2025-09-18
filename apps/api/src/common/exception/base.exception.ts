@@ -40,4 +40,17 @@ export class ExceptionResponseDto {
     example: '/user',
   })
   path: string;
+
+  static fromException(
+    exception: BaseException,
+    path: string,
+  ): ExceptionResponseDto {
+    return {
+      statusCode: exception.getStatus(),
+      code: exception.code,
+      message: (exception.getResponse() as any).message,
+      timestamp: new Date(),
+      path,
+    };
+  }
 }

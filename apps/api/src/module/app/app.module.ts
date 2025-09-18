@@ -14,6 +14,7 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { MessageModule } from '../message/message.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { ChatWsModule } from '../chat/chat-ws.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
     UserModule,
     RoomModule,
     MessageModule,
+    ChatWsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -6,6 +6,8 @@ import { SwaggerConfig } from './config/swagger.config';
 import { VersioningType } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 import { ValidationConfig } from './config/validation.config';
+import { AsyncApiModule } from 'nestjs-asyncapi';
+import { AsyncApiConfig } from './config/async-api.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,6 +34,10 @@ async function bootstrap() {
       persistAuthorization: true,
     },
   });
+
+  // AsyncAPI
+  const asyncApiDoc = AsyncApiModule.createDocument(app, AsyncApiConfig);
+  await AsyncApiModule.setup('/asyncapi', app, asyncApiDoc);
 
   await app.listen(process.env.PORT ?? 3000);
 }
