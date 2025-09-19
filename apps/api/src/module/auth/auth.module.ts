@@ -21,6 +21,7 @@ import { RefreshToken } from 'src/entity/refresh-token.entity';
           expiresIn: configService.getOrThrow<string>('JWT_EXPIRES_IN'),
         },
       }),
+      global: true,
     }),
     TypeOrmModule.forFeature([RefreshToken]),
     UserModule,

@@ -8,12 +8,22 @@ import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 import { ValidationConfig } from './config/validation.config';
 import { AsyncApiModule } from 'nestjs-asyncapi';
 import { AsyncApiConfig } from './config/async-api.config';
+import { AuthenticatedSocketIoAdapter } from './adapter/authenticated-socket-oi.adapter';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 전역 파이프
   app.useGlobalPipes(ValidationConfig);
+
+  const socketAuthAdapter = new AuthenticatedSocketIoAdapter(
+    app,
+    app.get(JwtService),
+    app.get(ConfigService),
+  );
+  app.useWebSocketAdapter(socketAuthAdapter);
 
   // 전역 필터
   app.useGlobalFilters(new HttpExceptionFilter());

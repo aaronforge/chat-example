@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { WS_EVENT_ROOM_JOIN } from 'src/constant/ws.constant';
 
 export class BaseException extends HttpException {
   constructor(
@@ -40,6 +41,13 @@ export class ExceptionResponseDto {
     example: '/user',
   })
   path: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    example: WS_EVENT_ROOM_JOIN,
+  })
+  eventName?: string | null;
 
   static fromException(
     exception: BaseException,
