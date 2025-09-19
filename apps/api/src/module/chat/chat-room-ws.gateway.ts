@@ -77,6 +77,6 @@ export class ChatWsGateway
 
     this.logger.debug(`User ${userId} joined room ${body.roomId}`);
 
-    return { ok: true };
+    return { ok: isMember };
   }
 }
