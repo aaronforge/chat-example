@@ -17,6 +17,8 @@ import { ExceptionResponseDto } from 'src/common/exception/base.exception';
 import {
   WS_NAMESPACE_CHAT,
   WS_EVENT_ROOM_JOIN,
+  WS_EVENT_ROOM_LEAVE,
+  WS_EVENT_ROOM_EXIT,
 } from 'src/constant/ws.constant';
 import { getWsChannel } from 'src/util/ws.util';
 import { OkResponseDto } from 'src/common/dto/ok-response.dto';
@@ -78,5 +80,75 @@ export class ChatWsGateway
     this.logger.debug(`User ${userId} joined room ${body.roomId}`);
 
     return { ok: isMember };
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_LEAVE),
+    description: '클라이언트 → 서버: 방 나가기(뒤로가기 등)',
+    message: {
+      payload: RoomIdPayloadDto,
+    },
+  })
+  @SubscribeMessage(WS_EVENT_ROOM_LEAVE)
+  async onLeave(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: RoomIdPayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const userId: string = client.data.userId;
+
+    const isMember = await this.roomMemberRepository.exists({
+      where: {
+        userId,
+        roomId: body.roomId,
+      },
+    });
+
+    if (!isMember) {
+      return ackFail(
+        new NotInRoomException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_ROOM_LEAVE,
+      );
+    }
+
+    await client.leave(body.roomId);
+
+    this.logger.debug(`User ${userId} left room ${body.roomId}`);
+
+    return { ok: isMember };
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_EXIT),
+    description: '클라이언트 → 서버: 방 나가기(멤버 탈퇴 등)',
+    message: {
+      payload: RoomIdPayloadDto,
+    },
+  })
+  @SubscribeMessage(WS_EVENT_ROOM_EXIT)
+  async onExit(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: RoomIdPayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const userId: string = client.data.userId;
+
+    const result = await this.roomMemberRepository.softDelete({
+      roomId: body.roomId,
+      userId,
+    });
+
+    if (!result.affected || result.affected <= 0) {
+      return ackFail(
+        new NotInRoomException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_ROOM_EXIT,
+      );
+    }
+
+    await client.leave(body.roomId);
+
+    this.logger.debug(`User ${userId} exited room ${body.roomId}`);
+
+    return { ok: result.affected > 0 };
   }
 }
