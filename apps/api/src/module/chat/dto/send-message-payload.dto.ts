@@ -1,9 +1,10 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsString, IsUUID, MaxLength } from 'class-validator';
 import { Trim } from 'src/common/decorator/trim.decorator';
 
 export class SendMessagePayloadDto {
-  @IsUUID() readonly roomId: string;
-  @IsIn(['text']) readonly type: 'text';
-  @IsString() @MaxLength(4000) @Trim() readonly content: string;
-  @IsUUID() readonly clientMsgId: string;
+  @ApiProperty() @IsUUID() readonly roomId: string;
+  @ApiProperty() @IsIn(['text']) readonly type: 'text';
+  @ApiProperty() @IsString() @MaxLength(4000) @Trim() readonly content: string;
+  @ApiProperty() @IsUUID() readonly clientMsgId: string;
 }

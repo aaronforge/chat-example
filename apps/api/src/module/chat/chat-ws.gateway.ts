@@ -10,7 +10,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AsyncApiSub } from 'nestjs-asyncapi';
+import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
 import { RoomIdPayloadDto } from './dto/room-id-payload.dto';
 import { UseWsValidation } from 'src/common/decorator/use-ws-validation.decorator';
 import { ExceptionResponseDto } from 'src/common/exception/base.exception';
@@ -35,6 +35,7 @@ import { Room } from 'src/entity/room.entity';
 import { RoomMember } from 'src/entity/room-member.entity';
 import { SendMessagePayloadDto } from './dto/send-message-payload.dto';
 import { MessageResponseDto } from '../message/dto/message-response.dto';
+import { RoomExitResponseDto } from './dto/room-exit-response.dto';
 
 @WebSocketGateway({
   namespace: WS_NAMESPACE_CHAT,
@@ -138,6 +139,13 @@ export class ChatWsGateway
       payload: RoomIdPayloadDto,
     },
   })
+  @AsyncApiPub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_EXIT),
+    description: '서버 → 클라이언트: 방 나감 알림(탈퇴 등)',
+    message: {
+      payload: RoomExitResponseDto,
+    },
+  })
   @SubscribeMessage(WS_EVENT_ROOM_EXIT)
   async onExit(
     @ConnectedSocket() client: Socket,
@@ -162,6 +170,13 @@ export class ChatWsGateway
 
     this.logger.debug(`User ${userId} exited room ${body.roomId}`);
 
+    const exitResponse: RoomExitResponseDto = {
+      roomId: body.roomId,
+      userId,
+    };
+
+    this.server.to(body.roomId).emit(WS_EVENT_ROOM_EXIT, exitResponse);
+
     return { ok: result.affected > 0 };
   }
 
@@ -169,7 +184,14 @@ export class ChatWsGateway
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_SEND),
     description: '클라이언트 → 서버: 메시지 전송',
     message: {
-      payload: RoomIdPayloadDto,
+      payload: SendMessagePayloadDto,
+    },
+  })
+  @AsyncApiPub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_SEND),
+    description: '서버 → 클라이언트: 메시지 수신',
+    message: {
+      payload: MessageResponseDto,
     },
   })
   @SubscribeMessage(WS_EVENT_MESSAGE_SEND)
