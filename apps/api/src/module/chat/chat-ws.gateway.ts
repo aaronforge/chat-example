@@ -19,12 +19,22 @@ import {
   WS_EVENT_ROOM_JOIN,
   WS_EVENT_ROOM_LEAVE,
   WS_EVENT_ROOM_EXIT,
+  WS_EVENT_MESSAGE_SEND,
 } from 'src/constant/ws.constant';
 import { getWsChannel } from 'src/util/ws.util';
 import { OkResponseDto } from 'src/common/dto/ok-response.dto';
 import { ackFail } from 'src/util/ack.util';
 import { RoomMemberRepository } from 'src/repository/room-member.repository';
-import { NotInRoomException } from 'src/common/exception/room.exception';
+import {
+  NotInRoomException,
+  RoomNotFoundException,
+} from 'src/common/exception/room.exception';
+import { DataSource } from 'typeorm';
+import { Message } from 'src/entity/message.entity';
+import { Room } from 'src/entity/room.entity';
+import { RoomMember } from 'src/entity/room-member.entity';
+import { SendMessagePayloadDto } from './dto/send-message-payload.dto';
+import { MessageResponseDto } from '../message/dto/message-response.dto';
 
 @WebSocketGateway({
   namespace: WS_NAMESPACE_CHAT,
@@ -38,7 +48,10 @@ export class ChatWsGateway
   @WebSocketServer() server: Server;
 
   private logger = new Logger(ChatWsGateway.name);
-  constructor(private readonly roomMemberRepository: RoomMemberRepository) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly roomMemberRepository: RoomMemberRepository,
+  ) {}
 
   afterInit(_: Server) {}
 
@@ -150,5 +163,84 @@ export class ChatWsGateway
     this.logger.debug(`User ${userId} exited room ${body.roomId}`);
 
     return { ok: result.affected > 0 };
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_SEND),
+    description: '클라이언트 → 서버: 메시지 전송',
+    message: {
+      payload: RoomIdPayloadDto,
+    },
+  })
+  @SubscribeMessage(WS_EVENT_MESSAGE_SEND)
+  async onMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: SendMessagePayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const { roomId } = body;
+    const userId: string = client.data.userId;
+
+    const message = await this.dataSource.transaction(async (em) => {
+      const messageRepo = em.getRepository(Message);
+      const roomRepo = em.getRepository(Room);
+      const memberRepo = em.getRepository(RoomMember);
+
+      // 방 멤버 확인
+      const member = await memberRepo.exists({
+        where: { roomId, userId },
+      });
+      if (!member) {
+        return ackFail(
+          new NotInRoomException(),
+          WS_NAMESPACE_CHAT,
+          WS_EVENT_MESSAGE_SEND,
+        );
+      }
+
+      // 멱등성 확인
+      const dup = await messageRepo.findOne({
+        where: { roomId, clientMsgId: body.clientMsgId, userId },
+      });
+      if (dup) return dup;
+
+      // 방 존재 확인
+      const room = await roomRepo.findOne({ where: { id: roomId } });
+      if (!room) {
+        return ackFail(
+          new RoomNotFoundException(),
+          WS_NAMESPACE_CHAT,
+          WS_EVENT_MESSAGE_SEND,
+        );
+      }
+
+      // lastSeq +1
+      await roomRepo.update({ id: roomId }, { lastSeq: () => 'lastSeq + 1' });
+
+      const next = await roomRepo.findOne({ where: { id: roomId } });
+      const seq = next!.lastSeq;
+
+      // 메시지 생성
+      return messageRepo.save(
+        messageRepo.create({
+          roomId,
+          userId,
+          type: body.type,
+          content: body.content,
+          clientMsgId: body.clientMsgId,
+          seq,
+        }),
+      );
+    });
+
+    if (message instanceof Message) {
+      this.server.to(roomId).emit(WS_EVENT_MESSAGE_SEND, {
+        roomId,
+        message: MessageResponseDto.fromEntity(message),
+      });
+
+      return { ok: true };
+    }
+
+    return message;
   }
 }
