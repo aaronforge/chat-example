@@ -6,9 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -27,8 +25,6 @@ import { ExceptionResponseDto } from '@api/common/exception/base.exception';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
-import { MarkReadResponseDto } from './dto/mark-read-response.dto';
-import { MarkReadDto } from './dto/mark-read.dto';
 import { RoomListResponseDto } from './dto/room-list-response.dto';
 import { MessageResponseDto } from '../message/dto/message-response.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
@@ -129,21 +125,5 @@ export class RoomController {
   ): Promise<OkResponseDto> {
     await this.roomService.leaveRoom(userId, roomId);
     return { ok: true };
-  }
-
-  @ApiOperation({ summary: '읽음 처리' })
-  @ApiOkResponse({ type: MarkReadResponseDto })
-  @ApiNotFoundResponse({
-    type: ExceptionResponseDto,
-    description: 'NOT_IN_ROOM',
-  })
-  @Put(':id/read')
-  async markRead(
-    @CurrentUserId() userId: string,
-    @Param('id', new ParseUUIDPipe()) roomId: string,
-    @Body() dto: MarkReadDto,
-  ): Promise<MarkReadResponseDto> {
-    const result = await this.roomService.markRead(userId, roomId, dto.upToSeq);
-    return result;
   }
 }

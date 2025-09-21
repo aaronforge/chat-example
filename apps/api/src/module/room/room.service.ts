@@ -11,7 +11,6 @@ import { DataSource, In } from 'typeorm';
 import { Room } from '@api/entity/room.entity';
 import { RoomMember } from '@api/entity/room-member.entity';
 import { ListRoomQueryDto } from './dto/list-room.dto';
-import { Message } from '@api/entity/message.entity';
 import { MessageRepository } from '@api/repository/message.repository';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { User } from '@api/entity/user.entity';
@@ -186,30 +185,5 @@ export class RoomService {
     }
 
     return { ok: true };
-  }
-
-  /**
-   * 읽음 처리: upToSeq 까지 갱신(max 보장)
-   */
-  async markRead(userId: string, roomId: string, upToSeq: number) {
-    return this.dataSource.transaction(async (em) => {
-      const memberRepo = em.getRepository(RoomMember);
-      const me = await memberRepo.findOne({ where: { roomId, userId } });
-      if (!me) throw new NotInRoomException();
-
-      const messageRepo = em.getRepository(Message);
-      const lastMsg = await messageRepo.findOne({
-        where: { roomId },
-        order: { seq: 'DESC' },
-      });
-
-      const lastSeq = lastMsg ? lastMsg.seq : 0;
-      const next = Math.min(Math.max(me.lastReadSeq, upToSeq), lastSeq);
-      if (next !== me.lastReadSeq) {
-        await memberRepo.update({ roomId, userId }, { lastReadSeq: next });
-      }
-
-      return { lastReadSeq: next };
-    });
   }
 }
