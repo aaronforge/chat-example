@@ -21,6 +21,8 @@ import {
   WS_EVENT_ROOM_EXIT,
   WS_EVENT_MESSAGE_SEND,
   WS_EVENT_ROOM_READ,
+  WS_EVENT_ROOM_TYPING_START,
+  WS_EVENT_ROOM_TYPING_STOP,
 } from '@api/constant/ws.constant';
 import { getWsChannel } from '@api/util/ws.util';
 import { OkResponseDto } from '@api/common/dto/ok-response.dto';
@@ -40,6 +42,7 @@ import { RoomExitPayloadDto } from './dto/room-exit-payload.dto';
 import { RoomReadPayloadDto } from './dto/room-read-payload.dto';
 import { MessageRepository } from '@api/repository/message.repository';
 import { CurrentWsUserId } from '@api/common/decorator/current-user.decorator';
+import { TypingPayloadDto } from './dto/typing-payload.dto';
 
 @WebSocketGateway({
   namespace: WS_NAMESPACE_CHAT,
@@ -257,7 +260,6 @@ export class ChatWsGateway
   @SubscribeMessage(WS_EVENT_ROOM_READ)
   async onRead(
     @CurrentWsUserId() userId: string,
-    @ConnectedSocket() client: Socket,
     @MessageBody() body: RoomReadPayloadDto,
   ): Promise<OkResponseDto | ExceptionResponseDto> {
     const { roomId, upToSeq } = body;
@@ -287,6 +289,83 @@ export class ChatWsGateway
       );
     }
 
+    return { ok: true };
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_TYPING_START),
+    description: '클라이언트 → 서버: 타이핑 시작',
+    message: { payload: RoomIdPayloadDto },
+  })
+  @AsyncApiPub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_TYPING_START),
+    description: '서버 → 클라이언트: 타이핑 시작 알림',
+    message: { payload: TypingPayloadDto },
+  })
+  @SubscribeMessage(WS_EVENT_ROOM_TYPING_START)
+  async onTypingStart(
+    @CurrentWsUserId() userId: string,
+    @MessageBody() body: RoomIdPayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const { roomId } = body;
+    const isMember = await this.roomMemberRepository.exists({
+      where: { userId, roomId },
+    });
+    if (!isMember) {
+      return ackFail(
+        new NotInRoomException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_ROOM_TYPING_START,
+      );
+    }
+
+    this.server
+      .to(roomId)
+      .emit(
+        WS_EVENT_ROOM_TYPING_START,
+        new TypingPayloadDto({ roomId, userId, isTyping: true }),
+      );
+
+    this.logger.debug(`User ${userId} is typing in room ${roomId}`);
+
+    return { ok: true };
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_TYPING_STOP),
+    description: '클라이언트 → 서버: 타이핑 중지',
+    message: { payload: RoomIdPayloadDto },
+  })
+  @AsyncApiPub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_TYPING_STOP),
+    description: '서버 → 클라이언트: 타이핑 중지 알림',
+    message: { payload: TypingPayloadDto },
+  })
+  @SubscribeMessage(WS_EVENT_ROOM_TYPING_STOP)
+  async onTypingStop(
+    @CurrentWsUserId() userId: string,
+    @MessageBody() body: RoomIdPayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const { roomId } = body;
+    const isMember = await this.roomMemberRepository.exists({
+      where: { userId, roomId },
+    });
+    if (!isMember) {
+      return ackFail(
+        new NotInRoomException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_ROOM_TYPING_STOP,
+      );
+    }
+
+    this.server
+      .to(roomId)
+      .emit(
+        WS_EVENT_ROOM_TYPING_STOP,
+        new TypingPayloadDto({ roomId, userId, isTyping: false }),
+      );
+
+    this.logger.debug(`User ${userId} stopped typing in room ${roomId}`);
     return { ok: true };
   }
 }
