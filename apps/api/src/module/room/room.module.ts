@@ -7,9 +7,14 @@ import { RoomService } from './room.service';
 import { RoomRepository } from '@api/repository/room.repository';
 import { RoomMemberRepository } from '@api/repository/room-member.repository';
 import { MessageModule } from '../message/message.module';
+import { ChatWsModule } from '../chat/chat-ws.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Room, RoomMember]), MessageModule],
+  imports: [
+    TypeOrmModule.forFeature([Room, RoomMember]),
+    ChatWsModule,
+    MessageModule,
+  ],
   controllers: [RoomController],
   providers: [RoomService, RoomRepository, RoomMemberRepository],
   exports: [RoomService, RoomRepository, RoomMemberRepository],

@@ -30,12 +30,17 @@ import { MessageResponseDto } from '../message/dto/message-response.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { IdListResponseDto } from '@api/common/dto/id-list-response.dto';
 import { RoomDetailResponseDto } from './dto/room-detail-response.dto';
+import { ChatWsGateway } from '../chat/chat-ws.gateway';
+import { WS_EVENT_ROOM_INVITE } from '@api/constant/ws.constant';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('rooms')
 export class RoomController {
-  constructor(private readonly roomService: RoomService) {}
+  constructor(
+    private readonly chatWsGateway: ChatWsGateway,
+    private readonly roomService: RoomService,
+  ) {}
 
   @ApiOperation({ summary: '방 생성' })
   @ApiOkResponse({ type: RoomSummaryResponseDto })
@@ -92,6 +97,12 @@ export class RoomController {
     @Body() dto: InviteMemberDto,
   ): Promise<IdListResponseDto> {
     const { ids } = await this.roomService.inviteMember(userId, roomId, dto);
+
+    this.chatWsGateway.server.to(roomId).emit(WS_EVENT_ROOM_INVITE, {
+      roomId,
+      userIds: ids,
+    });
+
     return { ids };
   }
 
