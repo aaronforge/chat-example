@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { RoomService } from './room.service';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
+import { OkResponseDto } from '@api/common/dto/ok-response.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -21,9 +21,9 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-import { CurrentUserId } from 'src/common/decorator/current-user.decorator';
+import { CurrentUserId } from '@api/common/decorator/current-user.decorator';
 import { RoomSummaryResponseDto } from './dto/room-summary-response.dto';
-import { ExceptionResponseDto } from 'src/common/exception/base.exception';
+import { ExceptionResponseDto } from '@api/common/exception/base.exception';
 import { ListRoomQueryDto } from './dto/list-room.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UserResponseDto } from '../user/dto/user-response.dto';
@@ -32,7 +32,7 @@ import { MarkReadDto } from './dto/mark-read.dto';
 import { RoomListResponseDto } from './dto/room-list-response.dto';
 import { MessageResponseDto } from '../message/dto/message-response.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
-import { IdListResponseDto } from 'src/common/dto/id-list-response.dto';
+import { IdListResponseDto } from '@api/common/dto/id-list-response.dto';
 import { RoomDetailResponseDto } from './dto/room-detail-response.dto';
 
 @ApiBearerAuth()

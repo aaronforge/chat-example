@@ -7,14 +7,14 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ExceptionResponseDto } from 'src/common/exception/base.exception';
+import { ExceptionResponseDto } from '@api/common/exception/base.exception';
 import { LoginDto } from './dto/login.dto';
-import { Public } from 'src/common/decorator/public.decorator';
-import { UserAgent } from 'src/common/decorator/user-agent.decorator';
+import { Public } from '@api/common/decorator/public.decorator';
+import { UserAgent } from '@api/common/decorator/user-agent.decorator';
 import { RealIp } from 'nestjs-real-ip';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
+import { OkResponseDto } from '@api/common/dto/ok-response.dto';
 
 @Controller('auth')
 export class AuthController {

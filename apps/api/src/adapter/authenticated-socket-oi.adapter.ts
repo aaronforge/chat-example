@@ -34,7 +34,7 @@ export class AuthenticatedSocketIoAdapter extends IoAdapter {
         const payload = await this.jwtService.verifyAsync(token, {
           secret: this.configService.get<string>('JWT_SECRET'),
         });
-        socket.data.userId = payload.sub;
+        socket.data.user = payload;
         next();
       } catch {
         return next(new UnauthorizedException('Invalid token'));

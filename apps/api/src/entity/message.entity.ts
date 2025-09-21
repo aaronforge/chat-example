@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, Index } from 'typeorm';
 import { BaseTimeEntity } from './base-time.entity';
 import { Room } from './room.entity';
 import { User } from './user.entity';
@@ -19,6 +19,7 @@ export class Message extends BaseTimeEntity {
   @Column('uuid')
   clientMsgId: string;
 
+  @Index('idx_message_room_seq')
   @Column('int')
   seq: number;
 

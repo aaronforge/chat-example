@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserRepository } from 'src/repository/user.repository';
+import { UserRepository } from '@api/repository/user.repository';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from 'src/entity/user.entity';
+import { User } from '@api/entity/user.entity';
 import * as bcrypt from 'bcrypt';
-import { EmailExistsException } from 'src/common/exception/user.exception';
+import { EmailExistsException } from '@api/common/exception/user.exception';
 
 @Injectable()
 export class UserService {

@@ -6,9 +6,9 @@ import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { RefreshTokenRepository } from 'src/repository/refresh-token.repository';
+import { RefreshTokenRepository } from '@api/repository/refresh-token.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from 'src/entity/refresh-token.entity';
+import { RefreshToken } from '@api/entity/refresh-token.entity';
 
 @Module({
   imports: [

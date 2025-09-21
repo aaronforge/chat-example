@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { WS_EVENT_ROOM_JOIN } from 'src/constant/ws.constant';
+import { WS_EVENT_ROOM_JOIN } from '@api/constant/ws.constant';
 
 export class BaseException extends HttpException {
   constructor(

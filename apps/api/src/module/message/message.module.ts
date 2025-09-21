@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Message } from 'src/entity/message.entity';
-import { RoomMember } from 'src/entity/room-member.entity';
-import { Room } from 'src/entity/room.entity';
-import { MessageRepository } from 'src/repository/message.repository';
-import { RoomMemberRepository } from 'src/repository/room-member.repository';
+import { Message } from '@api/entity/message.entity';
+import { RoomMember } from '@api/entity/room-member.entity';
+import { Room } from '@api/entity/room.entity';
+import { MessageRepository } from '@api/repository/message.repository';
+import { RoomMemberRepository } from '@api/repository/room-member.repository';
 import { MessageController } from './message.controller';
 import { MessageService } from './message.service';
 

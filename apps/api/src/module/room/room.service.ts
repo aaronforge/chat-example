@@ -3,18 +3,18 @@ import {
   NeedAtLeastTwoMembersException,
   NotInRoomException,
   RoomNotFoundException,
-} from 'src/common/exception/room.exception';
-import { RoomMemberRepository } from 'src/repository/room-member.repository';
-import { RoomRepository } from 'src/repository/room.repository';
+} from '@api/common/exception/room.exception';
+import { RoomMemberRepository } from '@api/repository/room-member.repository';
+import { RoomRepository } from '@api/repository/room.repository';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { DataSource, In } from 'typeorm';
-import { Room } from 'src/entity/room.entity';
-import { RoomMember } from 'src/entity/room-member.entity';
+import { Room } from '@api/entity/room.entity';
+import { RoomMember } from '@api/entity/room-member.entity';
 import { ListRoomQueryDto } from './dto/list-room.dto';
-import { Message } from 'src/entity/message.entity';
-import { MessageRepository } from 'src/repository/message.repository';
+import { Message } from '@api/entity/message.entity';
+import { MessageRepository } from '@api/repository/message.repository';
 import { InviteMemberDto } from './dto/invite-member.dto';
-import { User } from 'src/entity/user.entity';
+import { User } from '@api/entity/user.entity';
 
 @Injectable()
 export class RoomService {

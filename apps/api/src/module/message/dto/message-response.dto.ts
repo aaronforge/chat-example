@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Message } from 'src/entity/message.entity';
+import { Message } from '@api/entity/message.entity';
 
 export class MessageResponseDto {
   @ApiProperty({

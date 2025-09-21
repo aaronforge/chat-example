@@ -8,7 +8,7 @@ import {
   IsUUID,
   MaxLength,
 } from 'class-validator';
-import { Trim } from 'src/common/decorator/trim.decorator';
+import { Trim } from '@api/common/decorator/trim.decorator';
 
 export class CreateRoomDto {
   @ApiProperty({ type: String, isArray: true })

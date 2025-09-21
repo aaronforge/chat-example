@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { SendMessageDto } from './dto/send-message.dto';
-import { Message } from 'src/entity/message.entity';
-import { Room } from 'src/entity/room.entity';
-import { RoomMember } from 'src/entity/room-member.entity';
+import { Message } from '@api/entity/message.entity';
+import { Room } from '@api/entity/room.entity';
+import { RoomMember } from '@api/entity/room-member.entity';
 import {
   NotInRoomException,
   RoomNotFoundException,
-} from 'src/common/exception/room.exception';
-import { RoomMemberRepository } from 'src/repository/room-member.repository';
-import { MessageRepository } from 'src/repository/message.repository';
+} from '@api/common/exception/room.exception';
+import { RoomMemberRepository } from '@api/repository/room-member.repository';
+import { MessageRepository } from '@api/repository/message.repository';
 import { ListMessageQuery } from './dto/list-message.dto';
-import { MessageNotFoundException } from 'src/common/exception/message.exception';
-import { ForbiddenException } from 'src/common/exception/common.exception';
+import { MessageNotFoundException } from '@api/common/exception/message.exception';
+import { ForbiddenException } from '@api/common/exception/common.exception';
 
 @Injectable()
 export class MessageService {

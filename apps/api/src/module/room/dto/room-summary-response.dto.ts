@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Room } from 'src/entity/room.entity';
+import { Room } from '@api/entity/room.entity';
 
 export class RoomSummaryResponseDto {
   @ApiProperty({

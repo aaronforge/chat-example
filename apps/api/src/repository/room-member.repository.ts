@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Message } from 'src/entity/message.entity';
-import { RoomMember } from 'src/entity/room-member.entity';
-import { Room } from 'src/entity/room.entity';
-import { User } from 'src/entity/user.entity';
+import { Message } from '@api/entity/message.entity';
+import { RoomMember } from '@api/entity/room-member.entity';
+import { Room } from '@api/entity/room.entity';
+import { User } from '@api/entity/user.entity';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()

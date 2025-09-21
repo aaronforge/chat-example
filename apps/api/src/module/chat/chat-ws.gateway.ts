@@ -12,30 +12,34 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AsyncApiPub, AsyncApiSub } from 'nestjs-asyncapi';
 import { RoomIdPayloadDto } from './dto/room-id-payload.dto';
-import { UseWsValidation } from 'src/common/decorator/use-ws-validation.decorator';
-import { ExceptionResponseDto } from 'src/common/exception/base.exception';
+import { UseWsValidation } from '@api/common/decorator/use-ws-validation.decorator';
+import { ExceptionResponseDto } from '@api/common/exception/base.exception';
 import {
   WS_NAMESPACE_CHAT,
   WS_EVENT_ROOM_JOIN,
   WS_EVENT_ROOM_LEAVE,
   WS_EVENT_ROOM_EXIT,
   WS_EVENT_MESSAGE_SEND,
-} from 'src/constant/ws.constant';
-import { getWsChannel } from 'src/util/ws.util';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
-import { ackFail } from 'src/util/ack.util';
-import { RoomMemberRepository } from 'src/repository/room-member.repository';
+  WS_EVENT_ROOM_READ,
+} from '@api/constant/ws.constant';
+import { getWsChannel } from '@api/util/ws.util';
+import { OkResponseDto } from '@api/common/dto/ok-response.dto';
+import { ackFail } from '@api/util/ack.util';
+import { RoomMemberRepository } from '@api/repository/room-member.repository';
 import {
   NotInRoomException,
   RoomNotFoundException,
-} from 'src/common/exception/room.exception';
+} from '@api/common/exception/room.exception';
 import { DataSource } from 'typeorm';
-import { Message } from 'src/entity/message.entity';
-import { Room } from 'src/entity/room.entity';
-import { RoomMember } from 'src/entity/room-member.entity';
+import { Message } from '@api/entity/message.entity';
+import { Room } from '@api/entity/room.entity';
+import { RoomMember } from '@api/entity/room-member.entity';
 import { SendMessagePayloadDto } from './dto/send-message-payload.dto';
 import { MessageResponseDto } from '../message/dto/message-response.dto';
-import { RoomExitResponseDto } from './dto/room-exit-response.dto';
+import { RoomExitPayloadDto } from './dto/room-exit-payload.dto';
+import { RoomReadPayloadDto } from './dto/room-read-payload.dto';
+import { MessageRepository } from '@api/repository/message.repository';
+import { CurrentWsUserId } from '@api/common/decorator/current-user.decorator';
 
 @WebSocketGateway({
   namespace: WS_NAMESPACE_CHAT,
@@ -51,6 +55,7 @@ export class ChatWsGateway
   private logger = new Logger(ChatWsGateway.name);
   constructor(
     private readonly dataSource: DataSource,
+    private readonly messageRepository: MessageRepository,
     private readonly roomMemberRepository: RoomMemberRepository,
   ) {}
 
@@ -63,22 +68,16 @@ export class ChatWsGateway
   @AsyncApiSub({
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_JOIN),
     description: '클라이언트 → 서버: 방 참여',
-    message: {
-      payload: RoomIdPayloadDto,
-    },
+    message: { payload: RoomIdPayloadDto },
   })
   @SubscribeMessage(WS_EVENT_ROOM_JOIN)
   async onJoin(
+    @CurrentWsUserId() userId: string,
     @ConnectedSocket() client: Socket,
     @MessageBody() body: RoomIdPayloadDto,
   ): Promise<OkResponseDto | ExceptionResponseDto> {
-    const userId: string = client.data.userId;
-
     const isMember = await this.roomMemberRepository.exists({
-      where: {
-        userId,
-        roomId: body.roomId,
-      },
+      where: { userId, roomId: body.roomId },
     });
 
     if (!isMember) {
@@ -99,22 +98,16 @@ export class ChatWsGateway
   @AsyncApiSub({
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_LEAVE),
     description: '클라이언트 → 서버: 방 나가기(뒤로가기 등)',
-    message: {
-      payload: RoomIdPayloadDto,
-    },
+    message: { payload: RoomIdPayloadDto },
   })
   @SubscribeMessage(WS_EVENT_ROOM_LEAVE)
   async onLeave(
+    @CurrentWsUserId() userId: string,
     @ConnectedSocket() client: Socket,
     @MessageBody() body: RoomIdPayloadDto,
   ): Promise<OkResponseDto | ExceptionResponseDto> {
-    const userId: string = client.data.userId;
-
     const isMember = await this.roomMemberRepository.exists({
-      where: {
-        userId,
-        roomId: body.roomId,
-      },
+      where: { userId, roomId: body.roomId },
     });
 
     if (!isMember) {
@@ -135,24 +128,19 @@ export class ChatWsGateway
   @AsyncApiSub({
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_EXIT),
     description: '클라이언트 → 서버: 방 나가기(멤버 탈퇴 등)',
-    message: {
-      payload: RoomIdPayloadDto,
-    },
+    message: { payload: RoomIdPayloadDto },
   })
   @AsyncApiPub({
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_EXIT),
     description: '서버 → 클라이언트: 방 나감 알림(탈퇴 등)',
-    message: {
-      payload: RoomExitResponseDto,
-    },
+    message: { payload: RoomExitPayloadDto },
   })
   @SubscribeMessage(WS_EVENT_ROOM_EXIT)
   async onExit(
+    @CurrentWsUserId() userId: string,
     @ConnectedSocket() client: Socket,
     @MessageBody() body: RoomIdPayloadDto,
   ): Promise<OkResponseDto | ExceptionResponseDto> {
-    const userId: string = client.data.userId;
-
     const result = await this.roomMemberRepository.softDelete({
       roomId: body.roomId,
       userId,
@@ -170,11 +158,10 @@ export class ChatWsGateway
 
     this.logger.debug(`User ${userId} exited room ${body.roomId}`);
 
-    const exitResponse: RoomExitResponseDto = {
+    const exitResponse = new RoomExitPayloadDto({
       roomId: body.roomId,
       userId,
-    };
-
+    });
     this.server.to(body.roomId).emit(WS_EVENT_ROOM_EXIT, exitResponse);
 
     return { ok: result.affected > 0 };
@@ -183,24 +170,20 @@ export class ChatWsGateway
   @AsyncApiSub({
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_SEND),
     description: '클라이언트 → 서버: 메시지 전송',
-    message: {
-      payload: SendMessagePayloadDto,
-    },
+    message: { payload: SendMessagePayloadDto },
   })
   @AsyncApiPub({
     channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_SEND),
     description: '서버 → 클라이언트: 메시지 수신',
-    message: {
-      payload: MessageResponseDto,
-    },
+    message: { payload: MessageResponseDto },
   })
   @SubscribeMessage(WS_EVENT_MESSAGE_SEND)
   async onMessage(
+    @CurrentWsUserId() userId: string,
     @ConnectedSocket() client: Socket,
     @MessageBody() body: SendMessagePayloadDto,
   ): Promise<OkResponseDto | ExceptionResponseDto> {
     const { roomId } = body;
-    const userId: string = client.data.userId;
 
     const message = await this.dataSource.transaction(async (em) => {
       const messageRepo = em.getRepository(Message);
@@ -264,5 +247,46 @@ export class ChatWsGateway
     }
 
     return message;
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_ROOM_READ),
+    description: '클라이언트 → 서버: 메시지 읽음 처리',
+    message: { payload: RoomReadPayloadDto },
+  })
+  @SubscribeMessage(WS_EVENT_ROOM_READ)
+  async onRead(
+    @CurrentWsUserId() userId: string,
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: RoomReadPayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const { roomId, upToSeq } = body;
+
+    const member = await this.roomMemberRepository.findOne({
+      where: { roomId, userId },
+    });
+    if (!member) {
+      return ackFail(
+        new NotInRoomException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_ROOM_READ,
+      );
+    }
+
+    const last = await this.messageRepository.findOne({
+      where: { roomId },
+      order: { seq: 'DESC' },
+    });
+    const lastSeq = last ? last.seq : 0;
+    const next = Math.min(upToSeq, lastSeq);
+
+    if (next !== member.lastReadSeq) {
+      await this.roomMemberRepository.update(
+        { roomId, userId },
+        { lastReadSeq: next },
+      );
+    }
+
+    return { ok: true };
   }
 }

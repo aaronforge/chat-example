@@ -16,15 +16,15 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { MessageService } from './message.service';
-import { CurrentUserId } from 'src/common/decorator/current-user.decorator';
+import { CurrentUserId } from '@api/common/decorator/current-user.decorator';
 import { SendMessageDto } from './dto/send-message.dto';
 import {
   MessageListResponseDto,
   MessageResponseDto,
 } from './dto/message-response.dto';
-import { ExceptionResponseDto } from 'src/common/exception/base.exception';
+import { ExceptionResponseDto } from '@api/common/exception/base.exception';
 import { ListMessageQuery } from './dto/list-message.dto';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
+import { OkResponseDto } from '@api/common/dto/ok-response.dto';
 
 @ApiBearerAuth()
 @Controller('message')

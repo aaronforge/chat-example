@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { MessageResponseDto } from 'src/module/message/dto/message-response.dto';
-import { UserResponseDto } from 'src/module/user/dto/user-response.dto';
+import { MessageResponseDto } from '@api/module/message/dto/message-response.dto';
+import { UserResponseDto } from '@api/module/user/dto/user-response.dto';
 
 export class RoomDetailResponseDto {
   @ApiProperty({ type: String })

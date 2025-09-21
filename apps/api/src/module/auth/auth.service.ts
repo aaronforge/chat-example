@@ -5,21 +5,21 @@ import { LoginDto } from './dto/login.dto';
 import {
   InvalidCredentialsException,
   UserNotFoundException,
-} from 'src/common/exception/user.exception';
+} from '@api/common/exception/user.exception';
 import * as bcrypt from 'bcrypt';
 import { TJwtPayload } from './type/jwt-payload.type';
-import { RefreshTokenRepository } from 'src/repository/refresh-token.repository';
-import { User } from 'src/entity/user.entity';
+import { RefreshTokenRepository } from '@api/repository/refresh-token.repository';
+import { User } from '@api/entity/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { randomUUID } from 'crypto';
-import { UnauthorizedException } from 'src/common/exception/common.exception';
+import { UnauthorizedException } from '@api/common/exception/common.exception';
 import {
   ExpiredTokenException,
   InvalidTokenException,
   RefreshFailedException,
   SubjectNotFoundException,
-} from 'src/common/exception/auth.exception';
+} from '@api/common/exception/auth.exception';
 
 @Injectable()
 export class AuthService {

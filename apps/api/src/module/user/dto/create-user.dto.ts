@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
-import { Trim } from 'src/common/decorator/trim.decorator';
+import { Trim } from '@api/common/decorator/trim.decorator';
 
 export class CreateUserDto {
   @ApiProperty({

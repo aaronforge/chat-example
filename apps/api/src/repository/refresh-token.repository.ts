@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RefreshToken } from 'src/entity/refresh-token.entity';
+import { RefreshToken } from '@api/entity/refresh-token.entity';
 import { DataSource, IsNull, Repository } from 'typeorm';
 
 @Injectable()

@@ -7,8 +7,8 @@ import {
   ApiCreatedResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-import { ExceptionResponseDto } from 'src/common/exception/base.exception';
-import { Public } from 'src/common/decorator/public.decorator';
+import { ExceptionResponseDto } from '@api/common/exception/base.exception';
+import { Public } from '@api/common/decorator/public.decorator';
 
 @Controller('user')
 export class UserController {

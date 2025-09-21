@@ -1,7 +1,7 @@
 import {
   BaseException,
   ExceptionResponseDto,
-} from 'src/common/exception/base.exception';
+} from '@api/common/exception/base.exception';
 import { toErrorResponse } from './filter.util';
 
 export type AckOk<T extends Object = {}> = { ok: true } & T;
