@@ -23,6 +23,7 @@ import {
   WS_EVENT_ROOM_READ,
   WS_EVENT_ROOM_TYPING_START,
   WS_EVENT_ROOM_TYPING_STOP,
+  WS_EVENT_MESSAGE_DELETE,
 } from '@api/constant/ws.constant';
 import { getWsChannel } from '@api/util/ws.util';
 import { OkResponseDto } from '@api/common/dto/ok-response.dto';
@@ -43,6 +44,9 @@ import { RoomReadPayloadDto } from './dto/room-read-payload.dto';
 import { MessageRepository } from '@api/repository/message.repository';
 import { CurrentWsUserId } from '@api/common/decorator/current-user.decorator';
 import { TypingPayloadDto } from './dto/typing-payload.dto';
+import { MessageIdPayloadDto } from './dto/message-id-payload.dto';
+import { ForbiddenException } from '@api/common/exception/common.exception';
+import { MessageDeletePayloadDto } from './dto/message-delete-payload.dto';
 
 @WebSocketGateway({
   namespace: WS_NAMESPACE_CHAT,
@@ -183,7 +187,6 @@ export class ChatWsGateway
   @SubscribeMessage(WS_EVENT_MESSAGE_SEND)
   async onMessage(
     @CurrentWsUserId() userId: string,
-    @ConnectedSocket() client: Socket,
     @MessageBody() body: SendMessagePayloadDto,
   ): Promise<OkResponseDto | ExceptionResponseDto> {
     const { roomId } = body;
@@ -250,6 +253,55 @@ export class ChatWsGateway
     }
 
     return message;
+  }
+
+  @AsyncApiSub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_DELETE),
+    description: '클라이언트 → 서버: 메시지 삭제',
+    message: { payload: OkResponseDto },
+  })
+  @AsyncApiPub({
+    channel: getWsChannel(WS_NAMESPACE_CHAT, WS_EVENT_MESSAGE_DELETE),
+    description: '서버 → 클라이언트: 메시지 삭제 알림',
+    message: { payload: MessageResponseDto },
+  })
+  @SubscribeMessage(WS_EVENT_MESSAGE_DELETE)
+  async onMessageDelete(
+    @CurrentWsUserId() userId: string,
+    @MessageBody() body: MessageIdPayloadDto,
+  ): Promise<OkResponseDto | ExceptionResponseDto> {
+    const { messageId } = body;
+    const message = await this.messageRepository.findOne({
+      where: { id: messageId, userId },
+    });
+
+    if (!message) {
+      return ackFail(
+        new NotInRoomException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_MESSAGE_DELETE,
+      );
+    }
+
+    if (message.userId !== userId) {
+      return ackFail(
+        new ForbiddenException(),
+        WS_NAMESPACE_CHAT,
+        WS_EVENT_MESSAGE_DELETE,
+      );
+    }
+
+    await this.messageRepository.softDelete({ id: messageId });
+
+    this.server.to(message.roomId).emit(
+      WS_EVENT_MESSAGE_DELETE,
+      new MessageDeletePayloadDto({
+        roomId: message.roomId,
+        messageId,
+      }),
+    );
+
+    return { ok: true };
   }
 
   @AsyncApiSub({

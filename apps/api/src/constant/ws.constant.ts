@@ -9,4 +9,4 @@ export const WS_EVENT_ROOM_READ = 'room.read';
 export const WS_EVENT_ROOM_TYPING_START = 'room.typing.start';
 export const WS_EVENT_ROOM_TYPING_STOP = 'room.typing.stop';
 export const WS_EVENT_MESSAGE_SEND = 'message.send';
-// export const WS_EVENT_MESSAGE_DELETE = 'message.delete';
+export const WS_EVENT_MESSAGE_DELETE = 'message.delete';
